@@ -19,16 +19,17 @@
 ******************************************************************************/
 //Declare pin functions on Redboard
 
-int stp[] = {22, 32, 42, 31};
-int dir[] = {24, 34, 44, 33};
-int MS1[] = {26, 36, 46, 35};
-int MS2[] = {28, 38, 48, 39};
-int  EN[] = {30, 40, 50, 41};
+int stp[] = {22, 32, 42, 31, 41};
+int dir[] = {24, 34, 44, 33, 43};
+int MS1[] = {26, 36, 46, 35, 45};
+int MS2[] = {28, 38, 48, 37, 47};
+int  EN[] = {30, 40, 50, 49, 49};
 
 
 //Declare variables for functions
 int i;
 char x;
+unsigned long p_action;
 
 void setup() {
   for (i = 0; i < sizeof(stp); i++) {
@@ -46,23 +47,26 @@ void setup() {
 
 //Main loop
 void loop() {
-  if (Serial.available() > 0)
-  {
-    x = Serial.read();
-  }
-
+    if (Serial.available() > 0)
+    {
+      x = Serial.read();
+    }
   for (i = 0; i < sizeof(stp); i++)
   {
     digitalWrite(EN[i], LOW);
   }
-  if (x == 'A')
-    StepForwardDefault(1);
-  else if (x == 'B')
-    ReverseStepDefault(1);
-  else if (x == 'C')
+  if (x == 'A') {
+    StepForwardDefault(0);
     StepForwardDefault(2);
-  else if (x == 'D')
+  }
+  else if (x == 'B') {
+    ReverseStepDefault(0);
     ReverseStepDefault(2);
+  }
+  else if (x == 'C')
+    StepForwardDefault(1);
+  else if (x == 'D')
+    ReverseStepDefault(1);
   else if (x == 'E')
     StepForwardDefault(3);
   else if (x == 'F')
@@ -72,8 +76,8 @@ void loop() {
   else if (x == 'H')
     ReverseStepDefault(4);
   else
-    x='x';
-    resetEDPins();
+    x = 'x';
+  
 
 }
 
@@ -91,21 +95,45 @@ void resetEDPins()
 
 //Default microstep mode function
 void StepForwardDefault(int xx)
-{
-  digitalWrite(dir[xx], LOW); //Pull dir[i]ection pin low to move "forward"
-  digitalWrite(stp[xx], HIGH); //Trigger one step forward
-  delay(1);
-  digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
-  delay(1);
+{ if (x == 'C') {
+    if (((millis() - p_action) >= 4)) {
+      digitalWrite(dir[xx], LOW); //Pull dir[i]ection pin low to move "forward"
+      digitalWrite(stp[xx], HIGH); //Trigger one step forward
+      digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
+      resetEDPins();
+      p_action = millis();
+    }
+  }
+  else {
+    if (((millis() - p_action) >= 1)) {
+      digitalWrite(dir[xx], LOW); //Pull dir[i]ection pin low to move "forward"
+      digitalWrite(stp[xx], HIGH); //Trigger one step forward
+      digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
+      resetEDPins();
+      p_action = millis();
+    }
+  }
 }
 
 //Reverse default microstep mode function
 void ReverseStepDefault(int xx)
-{
-  digitalWrite(dir[xx], HIGH); //Pull dir[i]ection pin high to move in "reverse"
-  digitalWrite(stp[xx], HIGH); //Trigger one step
-  delay(1);
-  digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
-  delay(1);
+{if (x == 'D') {
+    if (((millis() - p_action) >= 4)) {
+      digitalWrite(dir[xx], HIGH); //Pull dir[i]ection pin low to move "forward"
+      digitalWrite(stp[xx], HIGH); //Trigger one step forward
+      digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
+      resetEDPins();
+      p_action = millis();
+    }
+  }
+  else {
+    if (((millis() - p_action) >= 1)) {
+      digitalWrite(dir[xx], HIGH); //Pull dir[i]ection pin low to move "forward"
+      digitalWrite(stp[xx], HIGH); //Trigger one step forward
+      digitalWrite(stp[xx], LOW); //Pull step pin low so it can be triggered again
+      resetEDPins();
+      p_action = millis();
+    }
+  }
 }
 
